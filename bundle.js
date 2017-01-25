@@ -7,7 +7,7 @@ class RestBundle extends Bundle {
 
     this.schema = schema;
 
-    this.get('/', this.search.bind(this));
+    this.get('/', this.index.bind(this));
     this.post('/', this.create.bind(this));
   }
 
@@ -15,14 +15,17 @@ class RestBundle extends Bundle {
     return ctx.norm.factory(this.schema);
   }
 
-  async search (ctx) {
-    return await this.getCollection(ctx).all();
+  async index (ctx) {
+    const entries = await this.getCollection(ctx).all();
+    return { entries };
   }
 
   async create (ctx) {
     const body = await parse.json(ctx);
 
-    const model = this.getCollection(ctx).new(body);
+    const model = this.getCollection(ctx).new();
+
+    model.set(body);
 
     await model.save();
 
