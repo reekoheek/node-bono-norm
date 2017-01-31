@@ -9,6 +9,10 @@ class RestBundle extends Bundle {
 
     this.get('/', this.index.bind(this));
     this.post('/', this.create.bind(this));
+
+    this.get('/{id}', this.read.bind(this));
+    this.put('/{id}', this.update.bind(this));
+    this.delete('/{id}', this.del.bind(this));
   }
 
   getCollection (ctx) {
@@ -16,23 +20,42 @@ class RestBundle extends Bundle {
   }
 
   async index (ctx) {
-    const entries = await this.getCollection(ctx).all();
+    const entries = await ctx.norm.find(this.schema).all();
     return { entries };
   }
 
   async create (ctx) {
-    const body = await parse.json(ctx);
+    const entry = await parse.json(ctx);
 
-    const model = this.getCollection(ctx).new();
-
-    model.set(body);
-
-    await model.save();
+    await ctx.norm.find(this.schema).insert(entry).save();
 
     ctx.status = 201;
-    ctx.response.set('Location', `${ctx.originalUrl}/${model.id}`);
+    ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
 
-    return model.get();
+    return { entry };
+  }
+
+  async read (ctx) {
+    const entry = await ctx.norm.find(this.schema, ctx.parameters.id).single();
+
+    if (!entry) {
+      ctx.status = 404;
+      return;
+    }
+
+    return { entry };
+  }
+
+  async update (ctx) {
+    const entry = await parse.json(ctx);
+
+    await ctx.norm.find(this.schema, ctx.parameters.id).set(entry).save();
+
+    return { entry };
+  }
+
+  async del (ctx) {
+    await ctx.norm.find(this.schema, ctx.parameters.id).delete();
   }
 }
 
