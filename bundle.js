@@ -20,7 +20,15 @@ class RestBundle extends Bundle {
   }
 
   async index (ctx) {
-    const entries = await ctx.norm.find(this.schema).all();
+    let query = {};
+    for (let key in ctx.query) {
+      if (key[0] === '!') {
+        continue;
+      }
+      query[key] = ctx.query[key];
+    }
+
+    const entries = await ctx.norm.find(this.schema, query).all();
     return { entries };
   }
 
