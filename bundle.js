@@ -1,5 +1,4 @@
 const Bundle = require('bono/bundle');
-const parse = require('co-body');
 
 class RestBundle extends Bundle {
   constructor ({ schema }) {
@@ -33,9 +32,9 @@ class RestBundle extends Bundle {
   }
 
   async create (ctx) {
-    const entry = await parse.json(ctx);
+    let entry = await ctx.parse();
 
-    await ctx.norm.find(this.schema).insert(entry).save();
+    [ entry ] = await ctx.norm.find(this.schema).insert(entry).save();
 
     ctx.status = 201;
     ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
@@ -55,7 +54,7 @@ class RestBundle extends Bundle {
   }
 
   async update (ctx) {
-    const entry = await parse.json(ctx);
+    const entry = await ctx.parse();
 
     await ctx.norm.find(this.schema, ctx.parameters.id).set(entry).save();
 

@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "bono": "xinix-technology/node-bono#master",
-    "co-body": "^4.2.0",
     "node-norm": "xinix-technology/node-norm#master"
   },
   "author": "Ganesha <reekoheek@gmail.com>",
