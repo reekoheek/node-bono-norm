@@ -14,7 +14,7 @@ class RestBundle extends Bundle {
     this.delete('/{id}', this.del.bind(this));
   }
 
-  getCollection (ctx) {
+  factory (ctx) {
     return ctx.norm.factory(this.schema);
   }
 
@@ -27,14 +27,14 @@ class RestBundle extends Bundle {
       query[key] = ctx.query[key];
     }
 
-    const entries = await ctx.norm.find(this.schema, query).all();
+    const entries = await this.factory(ctx).find(query).all();
     return { entries };
   }
 
   async create (ctx) {
     let entry = await ctx.parse();
 
-    [ entry ] = await ctx.norm.find(this.schema).insert(entry).save();
+    [ entry ] = await this.factory(ctx).find().insert(entry).save();
 
     ctx.status = 201;
     ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
@@ -43,7 +43,7 @@ class RestBundle extends Bundle {
   }
 
   async read (ctx) {
-    const entry = await ctx.norm.find(this.schema, ctx.parameters.id).single();
+    const entry = await this.factory(ctx).find(ctx.parameters.id).single();
 
     if (!entry) {
       ctx.status = 404;
@@ -56,13 +56,13 @@ class RestBundle extends Bundle {
   async update (ctx) {
     const entry = await ctx.parse();
 
-    await ctx.norm.find(this.schema, ctx.parameters.id).set(entry).save();
+    await this.factory(ctx).find(ctx.parameters.id).set(entry).save();
 
     return { entry };
   }
 
   async del (ctx) {
-    await ctx.norm.find(this.schema, ctx.parameters.id).delete();
+    await this.factory(ctx).find(ctx.parameters.id).delete();
   }
 }
 
