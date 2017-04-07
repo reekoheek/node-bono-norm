@@ -14,8 +14,12 @@ class RestBundle extends Bundle {
     this.delete('/{id}', this.del.bind(this));
   }
 
-  factory (ctx) {
-    return ctx.norm.factory(this.schema);
+  factory (ctx, query) {
+    if ('norm' in ctx === false) {
+      throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
+    }
+
+    return ctx.norm.factory(this.schema, query);
   }
 
   async index (ctx) {
@@ -27,14 +31,15 @@ class RestBundle extends Bundle {
       query[key] = ctx.query[key];
     }
 
-    const entries = await this.factory(ctx).find(query).all();
+    const entries = await this.factory(ctx, query).all();
     return { entries };
   }
 
   async create (ctx) {
     let entry = await ctx.parse();
 
-    [ entry ] = await this.factory(ctx).find().insert(entry).save();
+    let { rows } = await this.factory(ctx).insert(entry).save();
+    [ entry ] = rows;
 
     ctx.status = 201;
     ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
@@ -43,7 +48,7 @@ class RestBundle extends Bundle {
   }
 
   async read (ctx) {
-    const entry = await this.factory(ctx).find(ctx.parameters.id).single();
+    const entry = await this.factory(ctx, ctx.parameters.id).single();
 
     if (!entry) {
       ctx.status = 404;
@@ -54,15 +59,19 @@ class RestBundle extends Bundle {
   }
 
   async update (ctx) {
+    throw new Error('revisit this');
+
     const entry = await ctx.parse();
 
-    await this.factory(ctx).find(ctx.parameters.id).set(entry).save();
+    await this.factory(ctx, ctx.parameters.id).set(entry).save();
 
     return { entry };
   }
 
   async del (ctx) {
-    await this.factory(ctx).find(ctx.parameters.id).delete();
+    throw new Error('revisit this');
+
+    await this.factory(ctx, ctx.parameters.id).delete();
   }
 }
 

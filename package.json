@@ -1,14 +1,14 @@
 {
   "name": "node-bono-norm",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node + Bono + Norm get along together",
   "main": "middleware.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "bono": "xinix-technology/node-bono#master",
-    "node-norm": "xinix-technology/node-norm#master"
+    "bono": "^0.3.1",
+    "node-norm": "^0.3.1"
   },
   "author": "Ganesha <reekoheek@gmail.com>",
   "license": "MIT",
