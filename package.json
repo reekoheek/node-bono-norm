@@ -1,6 +1,6 @@
 {
-  "name": "node-bono-norm",
-  "version": "1.0.0",
+  "name": "bono-norm",
+  "version": "1.0.1",
   "description": "Node + Bono + Norm get along together",
   "main": "middleware.js",
   "scripts": {
