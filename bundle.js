@@ -49,29 +49,32 @@ class RestBundle extends Bundle {
 
   async read (ctx) {
     const entry = await this.factory(ctx, ctx.parameters.id).single();
-
     if (!entry) {
-      ctx.status = 404;
-      return;
+      ctx.throw(404);
     }
 
     return { entry };
   }
 
   async update (ctx) {
-    throw new Error('revisit this');
+    let { entry } = await this.read(ctx);
 
-    const entry = await ctx.parse();
+    entry = Object.assign(entry, await ctx.parse());
 
     await this.factory(ctx, ctx.parameters.id).set(entry).save();
+
+    // TODO redundant query?
+    // entry = await this.factory(ctx, ctx.parameters.id).single();
 
     return { entry };
   }
 
   async del (ctx) {
-    throw new Error('revisit this');
+    let { entry } = await this.read(ctx);
 
     await this.factory(ctx, ctx.parameters.id).delete();
+
+    return { entry };
   }
 }
 
