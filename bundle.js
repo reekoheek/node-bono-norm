@@ -14,67 +14,74 @@ class RestBundle extends Bundle {
     this.delete('/{id}', this.del.bind(this));
   }
 
-  factory (ctx, query) {
+  runSession (ctx, fn, opts) {
     if ('norm' in ctx === false) {
-      throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
+      throw new Error('ctx.normSession not found! Please use middleware: node-bono-norm/middleware');
     }
 
-    return ctx.norm.factory(this.schema, query);
+    return ctx.norm.runSession(fn, opts);
   }
 
   async index (ctx) {
-    let query = {};
-    for (let key in ctx.query) {
-      if (key[0] === '!') {
-        continue;
+    return await this.runSession(ctx, async session => {
+      let query = {};
+      for (let key in ctx.query) {
+        if (key[0] === '!') {
+          continue;
+        }
+        query[key] = ctx.query[key];
       }
-      query[key] = ctx.query[key];
-    }
-
-    const entries = await this.factory(ctx, query).all();
-    return { entries };
+      const entries = await session.factory(this.schema, query).all();
+      return { entries };
+    });
   }
 
   async create (ctx) {
-    let entry = await ctx.parse();
+    return await this.runSession(ctx, async session => {
+      let entry = await ctx.parse();
+      const { rows } = await session.factory(this.schema, ctx.parameters.id).insert(entry).save();
+      [ entry ] = rows;
 
-    let { rows } = await this.factory(ctx).insert(entry).save();
-    [ entry ] = rows;
+      ctx.status = 201;
+      ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
 
-    ctx.status = 201;
-    ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
-
-    return { entry };
+      return { entry };
+    }, { autocommit: false });
   }
 
   async read (ctx) {
-    const entry = await this.factory(ctx, ctx.parameters.id).single();
-    if (!entry) {
-      ctx.throw(404);
-    }
-
-    return { entry };
+    return await this.runSession(ctx, async session => {
+      const entry = await session.factory(this.schema, ctx.parameters.id).single();
+      if (!entry) {
+        ctx.throw(404);
+      }
+      return { entry };
+    });
   }
 
   async update (ctx) {
-    let { entry } = await this.read(ctx);
+    return await this.runSession(ctx, async session => {
+      let { entry } = await this.read(ctx);
 
-    entry = Object.assign(entry, await ctx.parse());
+      entry = Object.assign(entry, await ctx.parse());
 
-    await this.factory(ctx, ctx.parameters.id).set(entry).save();
+      await session.factory(this.schema, ctx.parameters.id).set(entry).save();
 
-    // TODO redundant query?
-    // entry = await this.factory(ctx, ctx.parameters.id).single();
+      // TODO redundant query?
+      // entry = await this.factory(ctx, ctx.parameters.id).single();
 
-    return { entry };
+      return { entry };
+    }, { autocommit: false });
   }
 
   async del (ctx) {
-    let { entry } = await this.read(ctx);
+    return await this.runSession(ctx, async session => {
+      let { entry } = await this.read(ctx);
 
-    await this.factory(ctx, ctx.parameters.id).delete();
+      await session.factory(this.schema, ctx.parameters.id).delete();
 
-    return { entry };
+      return { entry };
+    }, { autocommit: false });
   }
 }
 
