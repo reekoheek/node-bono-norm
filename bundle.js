@@ -32,7 +32,7 @@ class RestBundle extends Bundle {
         query[key] = ctx.query[key];
       }
       const entries = await session.factory(this.schema, query).all();
-      return { entries };
+      return entries;
     });
   }
 
@@ -45,7 +45,7 @@ class RestBundle extends Bundle {
       ctx.status = 201;
       ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
 
-      return { entry };
+      return entry;
     }, { autocommit: false });
   }
 
@@ -55,13 +55,16 @@ class RestBundle extends Bundle {
       if (!entry) {
         ctx.throw(404);
       }
-      return { entry };
+      return entry;
     });
   }
 
   async update (ctx) {
     return await this.runSession(ctx, async session => {
       let { entry } = await this.read(ctx);
+      if (!entry) {
+        ctx.throw(404);
+      }
 
       entry = Object.assign(entry, await ctx.parse());
 
@@ -70,17 +73,20 @@ class RestBundle extends Bundle {
       // TODO redundant query?
       // entry = await this.factory(ctx, ctx.parameters.id).single();
 
-      return { entry };
+      return entry;
     }, { autocommit: false });
   }
 
   async del (ctx) {
     return await this.runSession(ctx, async session => {
       let { entry } = await this.read(ctx);
+      if (!entry) {
+        ctx.throw(404);
+      }
 
       await session.factory(this.schema, ctx.parameters.id).delete();
 
-      return { entry };
+      return entry;
     }, { autocommit: false });
   }
 }
