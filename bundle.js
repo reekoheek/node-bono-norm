@@ -61,7 +61,7 @@ class RestBundle extends Bundle {
 
   async update (ctx) {
     return await this.runSession(ctx, async session => {
-      let { entry } = await this.read(ctx);
+      let entry = await this.read(ctx);
       if (!entry) {
         ctx.throw(404);
       }
@@ -79,7 +79,7 @@ class RestBundle extends Bundle {
 
   async del (ctx) {
     return await this.runSession(ctx, async session => {
-      let { entry } = await this.read(ctx);
+      let entry = await this.read(ctx);
       if (!entry) {
         ctx.throw(404);
       }
