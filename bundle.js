@@ -1,6 +1,6 @@
 const Bundle = require('bono/bundle');
 
-class RestBundle extends Bundle {
+class NormBundle extends Bundle {
   constructor ({ schema }) {
     super();
 
@@ -22,8 +22,8 @@ class RestBundle extends Bundle {
     return ctx.norm.runSession(fn, opts);
   }
 
-  async index (ctx) {
-    return await this.runSession(ctx, async session => {
+  index (ctx) {
+    return this.runSession(ctx, async session => {
       let query = {};
       for (let key in ctx.query) {
         if (key[0] === '!') {
@@ -36,8 +36,8 @@ class RestBundle extends Bundle {
     });
   }
 
-  async create (ctx) {
-    return await this.runSession(ctx, async session => {
+  create (ctx) {
+    return this.runSession(ctx, async session => {
       let entry = await ctx.parse();
       const { rows } = await session.factory(this.schema, ctx.parameters.id).insert(entry).save();
       [ entry ] = rows;
@@ -49,19 +49,25 @@ class RestBundle extends Bundle {
     }, { autocommit: false });
   }
 
-  async read (ctx) {
-    return await this.runSession(ctx, async session => {
+  read (ctx, session) {
+    const doRead = async session => {
       const entry = await session.factory(this.schema, ctx.parameters.id).single();
       if (!entry) {
         ctx.throw(404);
       }
       return entry;
-    });
+    };
+
+    if (!session) {
+      return this.runSession(ctx, doRead);
+    }
+
+    return doRead(session);
   }
 
-  async update (ctx) {
-    return await this.runSession(ctx, async session => {
-      let entry = await this.read(ctx);
+  update (ctx) {
+    return this.runSession(ctx, async session => {
+      let entry = await this.read(ctx, session);
       if (!entry) {
         ctx.throw(404);
       }
@@ -70,16 +76,13 @@ class RestBundle extends Bundle {
 
       await session.factory(this.schema, ctx.parameters.id).set(entry).save();
 
-      // TODO redundant query?
-      // entry = await this.factory(ctx, ctx.parameters.id).single();
-
       return entry;
     }, { autocommit: false });
   }
 
-  async del (ctx) {
-    return await this.runSession(ctx, async session => {
-      let entry = await this.read(ctx);
+  del (ctx) {
+    return this.runSession(ctx, async session => {
+      let entry = await this.read(ctx, session);
       if (!entry) {
         ctx.throw(404);
       }
@@ -91,4 +94,4 @@ class RestBundle extends Bundle {
   }
 }
 
-module.exports = RestBundle;
+module.exports = NormBundle;

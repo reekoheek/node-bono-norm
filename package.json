@@ -1,21 +1,31 @@
 {
   "name": "bono-norm",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Node + Bono + Norm get along together",
   "main": "middleware.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "bono": "^0.3.2",
-    "node-norm": "^0.3.5"
-  },
   "author": "Ganesha <reekoheek@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reekoheek/node-bono-norm.git"
+  },
   "devDependencies": {
-    "eslint": "^3.14.0",
-    "eslint-config-standard": "^6.2.1",
-    "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^2.0.1"
+    "babel-eslint": "^8.0.1",
+    "bono": "^0.3.4",
+    "eslint": "^4.10.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-config-xinix": "^1.0.4",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "node-norm": "^0.5.0"
+  },
+  "peerDependencies": {
+    "bono": "^0.3.4",
+    "node-norm": "^0.5.0"
   }
 }

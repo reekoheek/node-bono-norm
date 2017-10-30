@@ -1,17 +1,31 @@
-# node-bono-norm
+# bono-norm
+
+## Install
+
+```sh
+npm i bono-norm
+```
 
 ## Usage
 
 ```javascript
-...
+// ...
 
-const normMiddleware = require('node-bono-norm/middleware');
-const NormBundle = require('node-bono-norm/bundle');
+const Bundle = require('bono');
+const normMiddleware = require('bono-norm');
+const NormBundle = require('bono-norm/bundle');
 const config = {
-  connections: {
-
-  },
+  connections: [
+    {
+      name: 'default',
+      adapter: 'disk',
+    },
+  ],
 };
+
+// create app bundle
+
+const app = new Bundle();
 
 // add middleware to use bono manager from bundle
 app.use(normMiddleware(config));
@@ -21,5 +35,6 @@ app.use(require('bono/middlewares/json')());
 
 // add bundle with collection schema name
 app.bundle('/user', new NormBundle({ schema: 'user' }));
-...
+
+// ...
 ```
