@@ -1,6 +1,6 @@
 const Manager = require('node-norm');
 
-module.exports = ({ manager, connections = [] } = {}) => {
+function normMiddleware ({ manager, connections = [] } = {}) {
   manager = manager || new Manager({ connections });
 
   return async (ctx, next) => {
@@ -9,3 +9,5 @@ module.exports = ({ manager, connections = [] } = {}) => {
     await next();
   };
 };
+
+module.exports = normMiddleware;

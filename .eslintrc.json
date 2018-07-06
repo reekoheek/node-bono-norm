@@ -1,4 +1,8 @@
 {
   "parser": "babel-eslint",
-  "extends": "xinix"
+  "extends": "xinix",
+  "env": {
+    "node": true,
+    "mocha": true
+  }
 }

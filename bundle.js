@@ -16,7 +16,7 @@ class NormBundle extends Bundle {
 
   runSession (ctx, fn, opts) {
     if ('norm' in ctx === false) {
-      throw new Error('ctx.normSession not found! Please use middleware: node-bono-norm/middleware');
+      throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
     }
 
     return ctx.norm.runSession(fn, opts);
