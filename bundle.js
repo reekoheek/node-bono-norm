@@ -24,15 +24,25 @@ class NormBundle extends Bundle {
 
   index (ctx) {
     return this.runSession(ctx, async session => {
-      let query = {};
+      let criteria = {};
       for (let key in ctx.query) {
         if (key[0] === '!') {
           continue;
         }
-        query[key] = ctx.query[key];
+        criteria[key] = ctx.query[key];
       }
-      const entries = await session.factory(this.schema, query).all();
-      return entries;
+      let query = session.factory(this.schema, criteria);
+
+      if ('!skip' in ctx.query) {
+        query = query.skip(ctx.query['!skip']);
+      }
+      if ('!limit' in ctx.query) {
+        query = query.limit(ctx.query['!limit']);
+      }
+
+      const entries = await query.all();
+      const count = await session.factory(this.schema, criteria).count();
+      return { entries, count };
     });
   }
 

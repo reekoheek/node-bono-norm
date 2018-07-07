@@ -2,9 +2,12 @@ const test = require('supertest');
 const Bundle = require('../bundle');
 const assert = require('assert');
 
-describe('bundle', () => {
+describe('(bundle)', () => {
   let data = {
-    foo: [ { id: '3333', foo: 'bar' } ],
+    foo: [
+      { id: '3333', foo: 'bar' },
+      { id: '9999', foo: 'baz' },
+    ],
   };
   let bundle;
 
@@ -21,13 +24,16 @@ describe('bundle', () => {
       .expect(500);
   });
 
-  it('return all rows', async () => {
-    let { body } = await test(bundle.callback())
-      .get('/')
-      .expect(200);
+  describe('GET /', () => {
+    it('return all rows', async () => {
+      let { body } = await test(bundle.callback())
+        .get('/?!limit=1')
+        .expect(200);
 
-    assert.equal(body.length, 1);
-    assert.deepEqual(body[0], { id: '3333', foo: 'bar' });
+      assert.equal(body.entries.length, 1);
+      assert.equal(body.count, 2);
+      assert.deepEqual(body.entries[0], { id: '3333', foo: 'bar' });
+    });
   });
 
   it('return row', async () => {

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-describe('middleware', () => {
+describe('(middleware)', () => {
   it('add norm to ctx', async () => {
     let middleware = require('../middleware')();
 
