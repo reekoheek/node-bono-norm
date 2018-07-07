@@ -34,10 +34,10 @@ class NormBundle extends Bundle {
       let query = session.factory(this.schema, criteria);
 
       if ('!skip' in ctx.query) {
-        query = query.skip(ctx.query['!skip']);
+        query = query.skip(Number(ctx.query['!skip']));
       }
       if ('!limit' in ctx.query) {
-        query = query.limit(ctx.query['!limit']);
+        query = query.limit(Number(ctx.query['!limit']));
       }
 
       const entries = await query.all();
