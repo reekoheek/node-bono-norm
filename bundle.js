@@ -19,7 +19,15 @@ class NormBundle extends Bundle {
       throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
     }
 
-    return ctx.norm.runSession(fn, opts);
+    return ctx.norm.runSession(async session => {
+      if (ctx.state.user) {
+        session.actor = ctx.state.user.subject;
+      }
+
+      let result = await fn(session);
+
+      return result;
+    }, opts);
   }
 
   index (ctx) {

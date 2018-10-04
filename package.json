@@ -1,14 +1,12 @@
 {
   "name": "bono-norm",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Node + Bono + Norm get along together",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "npx mocha test/**",
-    "coverage": "npx nyc --reporter=lcov npm test",
-    "precommit": "echo 'nothing'",
-    "prepush": "npm run lint && npm test"
+    "test": "mocha test/**",
+    "coverage": "nyc --reporter=lcov npm test"
   },
   "author": "Ganesha <reekoheek@gmail.com>",
   "license": "MIT",
@@ -17,21 +15,26 @@
     "url": "https://github.com/reekoheek/node-bono-norm.git"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.5",
-    "bono": "^0.3.5",
-    "eslint": "^5.0.1",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-config-xinix": "^1.0.4",
-    "eslint-plugin-import": "^2.13.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.8.0",
-    "eslint-plugin-standard": "^3.1.0",
-    "husky": "^0.14.3",
-    "node-norm": "^1.0.0",
-    "supertest": "^3.1.0"
+    "babel-eslint": "^10.0.1",
+    "bono": "^1.0.0",
+    "eslint": "^5.6.1",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-config-xinix": "^1.1.2",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "husky": "^1.1.0",
+    "node-norm": "^1.2.5",
+    "supertest": "^3.3.0"
   },
   "peerDependencies": {
-    "bono": "^0.3.5",
-    "node-norm": "^1.0.0"
+    "bono": "^1.0.0",
+    "node-norm": "^1.2.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm test"
+    }
   }
 }

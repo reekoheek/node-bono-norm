@@ -3,6 +3,7 @@ const Bundle = require('../bundle');
 const assert = require('assert');
 
 describe('(bundle)', () => {
+  let adapter = require('node-norm/adapters/memory');
   let data = {
     foo: [
       { id: '3333', foo: 'bar' },
@@ -13,7 +14,7 @@ describe('(bundle)', () => {
 
   beforeEach(() => {
     bundle = new Bundle({ schema: 'foo' });
-    bundle.use(require('../middleware')({ connections: [ { data } ] }));
+    bundle.use(require('../middleware')({ connections: [ { data, adapter } ] }));
     bundle.use(require('bono/middlewares/json')());
   });
 
@@ -30,9 +31,9 @@ describe('(bundle)', () => {
         .get('/?!limit=1')
         .expect(200);
 
-      assert.equal(body.entries.length, 1);
-      assert.equal(body.count, 2);
-      assert.deepEqual(body.entries[0], { id: '3333', foo: 'bar' });
+      assert.strictEqual(body.entries.length, 1);
+      assert.strictEqual(body.count, 2);
+      assert.deepStrictEqual(body.entries[0], { id: '3333', foo: 'bar' });
     });
   });
 
@@ -41,6 +42,6 @@ describe('(bundle)', () => {
       .get('/3333')
       .expect(200);
 
-    assert.deepEqual(body, { id: '3333', foo: 'bar' });
+    assert.deepStrictEqual(body, { id: '3333', foo: 'bar' });
   });
 });

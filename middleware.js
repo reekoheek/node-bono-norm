@@ -1,4 +1,4 @@
-const Manager = require('node-norm');
+const { Manager } = require('node-norm');
 
 function normMiddleware ({ manager, connections = [] } = {}) {
   manager = manager || new Manager({ connections });
@@ -8,6 +8,6 @@ function normMiddleware ({ manager, connections = [] } = {}) {
 
     await next();
   };
-};
+}
 
 module.exports = normMiddleware;
