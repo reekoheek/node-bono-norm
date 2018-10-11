@@ -1,10 +1,11 @@
 const Bundle = require('bono/bundle');
 
 class NormBundle extends Bundle {
-  constructor ({ schema }) {
+  constructor ({ schema, filterBy }) {
     super();
 
     this.schema = schema;
+    this.filterBy = filterBy;
 
     this.get('/', this.index.bind(this));
     this.post('/', this.create.bind(this));
@@ -39,6 +40,13 @@ class NormBundle extends Bundle {
         }
         criteria[key] = ctx.query[key];
       }
+
+      if (this.filterBy) {
+        Object.keys(this.filterBy).forEach(filterKey => {
+          criteria[this.filterBy[filterKey]] = ctx.parameters[filterKey];
+        });
+      }
+
       let query = session.factory(this.schema, criteria);
 
       if ('!skip' in ctx.query) {
@@ -56,7 +64,14 @@ class NormBundle extends Bundle {
 
   create (ctx) {
     return this.runSession(ctx, async session => {
-      let entry = await ctx.parse();
+      let filterData = {};
+      if (this.filterBy) {
+        Object.keys(this.filterBy).forEach(filterKey => {
+          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
+        });
+      }
+
+      let entry = Object.assign(await ctx.parse(), filterData);
       const { rows } = await session.factory(this.schema, ctx.parameters.id).insert(entry).save();
       [ entry ] = rows;
 
@@ -69,10 +84,19 @@ class NormBundle extends Bundle {
 
   read (ctx, session) {
     const doRead = async session => {
-      const entry = await session.factory(this.schema, ctx.parameters.id).single();
+      let filterData = {};
+      if (this.filterBy) {
+        Object.keys(this.filterBy).forEach(filterKey => {
+          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
+        });
+      }
+      let criteria = Object.assign({ id: ctx.parameters.id }, filterData);
+
+      const entry = await session.factory(this.schema, criteria).single();
       if (!entry) {
         ctx.throw(404);
       }
+
       return entry;
     };
 
@@ -90,7 +114,14 @@ class NormBundle extends Bundle {
         ctx.throw(404);
       }
 
-      entry = Object.assign(entry, await ctx.parse());
+      let filterData = {};
+      if (this.filterBy) {
+        Object.keys(this.filterBy).forEach(filterKey => {
+          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
+        });
+      }
+
+      entry = Object.assign(entry, await ctx.parse(), filterData);
 
       await session.factory(this.schema, ctx.parameters.id).set(entry).save();
 
