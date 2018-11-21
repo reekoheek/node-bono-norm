@@ -22,7 +22,7 @@ class NormBundle extends Bundle {
 
     return ctx.norm.runSession(async session => {
       if (ctx.state.user) {
-        session.actor = ctx.state.user.subject;
+        session.actor = ctx.state.user.sub;
       }
 
       let result = await fn(session);

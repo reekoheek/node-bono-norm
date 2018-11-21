@@ -4,7 +4,7 @@ const { Manager } = require('node-norm');
 const NormBundle = require('../bundle');
 const assert = require('assert');
 
-describe.only('nested bundle', () => {
+describe('nested bundle', () => {
   it('show filtered', async () => {
     let data = {
       foo: [
