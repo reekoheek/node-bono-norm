@@ -38,6 +38,22 @@ describe('(bundle)', () => {
       assert.strictEqual(body.count, 2);
       assert.deepStrictEqual(body.entries[0], { id: '3333', foo: 'bar' });
     });
+
+    it('return all rows with sort', async () => {
+      let { body } = await test(bundle.callback())
+        .get('/?!sort[id]=1')
+        .expect(200);
+
+      assert.strictEqual(body.entries[0].id, '3333');
+
+      {
+        let { body } = await test(bundle.callback())
+          .get('/?!sort[id]=-1')
+          .expect(200);
+
+        assert.strictEqual(body.entries[0].id, '9999');
+      }
+    });
   });
 
   describe('GET /{id}', () => {

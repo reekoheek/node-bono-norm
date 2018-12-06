@@ -52,8 +52,13 @@ class NormBundle extends Bundle {
       if ('!skip' in ctx.query) {
         query = query.skip(Number(ctx.query['!skip']));
       }
+
       if ('!limit' in ctx.query) {
         query = query.limit(Number(ctx.query['!limit']));
+      }
+
+      if ('!sort' in ctx.query) {
+        query = query.sort(ctx.query['!sort']);
       }
 
       const entries = await query.all();
