@@ -1,6 +1,6 @@
 {
   "name": "bono-norm",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Node + Bono + Norm get along together",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "devDependencies": {
     "bono": "^1.0.1",
     "husky": "^1.2.0",
-    "node-norm": "^1.2.15",
+    "node-norm": "^1.2.16",
     "supertest": "^3.3.0"
   },
   "peerDependencies": {

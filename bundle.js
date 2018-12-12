@@ -21,6 +21,8 @@ class NormBundle extends Bundle {
     }
 
     return ctx.norm.runSession(async session => {
+      session.bundle = this;
+
       if (ctx.state.user) {
         session.actor = ctx.state.user.sub;
       }
