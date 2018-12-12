@@ -15,22 +15,13 @@ class NormBundle extends Bundle {
     this.delete('/{id}', this.del.bind(this));
   }
 
-  runSession (ctx, fn, opts) {
+  runSession (ctx, fn) {
     if ('norm' in ctx === false) {
       throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
     }
 
-    return ctx.norm.runSession(async session => {
-      session.bundle = this;
-
-      if (ctx.state.user) {
-        session.actor = ctx.state.user.sub;
-      }
-
-      let result = await fn(session);
-
-      return result;
-    }, opts);
+    let { state } = ctx;
+    return ctx.norm.runSession(fn, { state });
   }
 
   index (ctx) {
@@ -86,7 +77,7 @@ class NormBundle extends Bundle {
       ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
 
       return entry;
-    }, { autocommit: false });
+    });
   }
 
   read (ctx, session) {
@@ -133,7 +124,7 @@ class NormBundle extends Bundle {
       await session.factory(this.schema, ctx.parameters.id).set(entry).save();
 
       return entry;
-    }, { autocommit: false });
+    });
   }
 
   del (ctx) {
@@ -146,7 +137,7 @@ class NormBundle extends Bundle {
       await session.factory(this.schema, ctx.parameters.id).delete();
 
       return entry;
-    }, { autocommit: false });
+    });
   }
 }
 

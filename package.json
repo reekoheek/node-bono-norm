@@ -1,6 +1,6 @@
 {
   "name": "bono-norm",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Node + Bono + Norm get along together",
   "main": "index.js",
   "scripts": {
@@ -15,9 +15,9 @@
     "url": "https://github.com/reekoheek/node-bono-norm.git"
   },
   "devDependencies": {
-    "bono": "^1.0.1",
+    "bono": "^1.0.2",
     "husky": "^1.2.0",
-    "node-norm": "^1.2.16",
+    "node-norm": "^1.2.17",
     "supertest": "^3.3.0"
   },
   "peerDependencies": {
