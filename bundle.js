@@ -1,11 +1,12 @@
 const Bundle = require('bono/bundle');
 
 class NormBundle extends Bundle {
-  constructor ({ schema, filterBy }) {
+  constructor ({ schema, filterBy, hiddenFields = [] }) {
     super();
 
     this.schema = schema;
     this.filterBy = filterBy;
+    this.hiddenFields = hiddenFields;
 
     this.get('/', this.index.bind(this));
     this.post('/', this.create.bind(this));
@@ -54,10 +55,20 @@ class NormBundle extends Bundle {
         query = query.sort(ctx.query['!sort']);
       }
 
-      const entries = await query.all();
+      const entries = (await query.all()).map(entry => this.hideFields(entry));
       const count = await session.factory(this.schema, criteria).count();
       return { entries, count };
     });
+  }
+
+  hideFields (entry) {
+    let result = { ...entry };
+
+    this.hiddenFields.forEach(field => {
+      delete result[field];
+    });
+
+    return result;
   }
 
   create (ctx) {
@@ -76,7 +87,7 @@ class NormBundle extends Bundle {
       ctx.status = 201;
       ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
 
-      return entry;
+      return this.hideFields(entry);
     });
   }
 
@@ -95,7 +106,7 @@ class NormBundle extends Bundle {
         ctx.throw(404);
       }
 
-      return entry;
+      return this.hideFields(entry);
     };
 
     if (!session) {
@@ -123,7 +134,7 @@ class NormBundle extends Bundle {
 
       await session.factory(this.schema, ctx.parameters.id).set(entry).save();
 
-      return entry;
+      return this.hideFields(entry);
     });
   }
 
@@ -136,7 +147,7 @@ class NormBundle extends Bundle {
 
       await session.factory(this.schema, ctx.parameters.id).delete();
 
-      return entry;
+      return this.hideFields(entry);
     });
   }
 }
