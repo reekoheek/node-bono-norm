@@ -1,45 +1,35 @@
 const Bundle = require('bono/bundle');
+const Constants = require('./constants');
 
 class NormBundle extends Bundle {
-  constructor ({ schema, filterBy, hiddenFields = [] }) {
+  constructor ({ schema, filterBy, selector = 'id', hiddenFields = [] }) {
     super();
 
     this.schema = schema;
+    this.selector = selector;
     this.filterBy = filterBy;
     this.hiddenFields = hiddenFields;
 
     this.get('/', this.index.bind(this));
     this.post('/', this.create.bind(this));
 
-    this.get('/{id}', this.read.bind(this));
-    this.put('/{id}', this.update.bind(this));
-    this.delete('/{id}', this.del.bind(this));
+    this.get('/{__selector}', this.read.bind(this));
+    this.put('/{__selector}', this.update.bind(this));
+    this.delete('/{__selector}', this.del.bind(this));
   }
 
   runSession (ctx, fn) {
-    if ('norm' in ctx === false) {
-      throw new Error('ctx.norm not found! Please use middleware: node-bono-norm/middleware');
+    if (Constants.MANAGER_KEY in ctx === false) {
+      throw new Error('Uninitialized manager! Please use bono-norm middleware');
     }
 
-    let { state } = ctx;
-    return ctx.norm.runSession(fn, { state });
+    const { state } = ctx;
+    return ctx[Constants.MANAGER_KEY].runSession(fn, { state });
   }
 
   index (ctx) {
     return this.runSession(ctx, async session => {
-      let criteria = {};
-      for (let key in ctx.query) {
-        if (key[0] === '!') {
-          continue;
-        }
-        criteria[key] = ctx.query[key];
-      }
-
-      if (this.filterBy) {
-        Object.keys(this.filterBy).forEach(filterKey => {
-          criteria[this.filterBy[filterKey]] = ctx.parameters[filterKey];
-        });
-      }
+      const criteria = this._buildAllCriteria(ctx);
 
       let query = session.factory(this.schema, criteria);
 
@@ -62,7 +52,7 @@ class NormBundle extends Bundle {
   }
 
   hideFields (entry) {
-    let result = { ...entry };
+    const result = { ...entry };
 
     this.hiddenFields.forEach(field => {
       delete result[field];
@@ -73,34 +63,23 @@ class NormBundle extends Bundle {
 
   create (ctx) {
     return this.runSession(ctx, async session => {
-      let filterData = {};
-      if (this.filterBy) {
-        Object.keys(this.filterBy).forEach(filterKey => {
-          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
-        });
-      }
+      const entry = {
+        ...await ctx.parse(),
+        ...this._buildFilterCriteria(ctx),
+      };
 
-      let entry = Object.assign(await ctx.parse(), filterData);
       const { rows } = await session.factory(this.schema, ctx.parameters.id).insert(entry).save();
-      [ entry ] = rows;
-
+      const resultEntry = rows[0];
       ctx.status = 201;
-      ctx.response.set('Location', `${ctx.originalUrl}/${entry.id}`);
+      ctx.response.set('Location', `${ctx.originalUrl}/${resultEntry.id}`);
 
-      return this.hideFields(entry);
+      return this.hideFields(resultEntry);
     });
   }
 
   read (ctx, session) {
     const doRead = async session => {
-      let filterData = {};
-      if (this.filterBy) {
-        Object.keys(this.filterBy).forEach(filterKey => {
-          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
-        });
-      }
-      let criteria = Object.assign({ id: ctx.parameters.id }, filterData);
-
+      const criteria = this._buildSingleCriteria(ctx);
       const entry = await session.factory(this.schema, criteria).single();
       if (!entry) {
         ctx.throw(404);
@@ -123,16 +102,12 @@ class NormBundle extends Bundle {
         ctx.throw(404);
       }
 
-      let filterData = {};
-      if (this.filterBy) {
-        Object.keys(this.filterBy).forEach(filterKey => {
-          filterData[this.filterBy[filterKey]] = ctx.parameters[filterKey];
-        });
-      }
+      entry = {
+        ...entry,
+        ...await ctx.parse(),
+      };
 
-      entry = Object.assign(entry, await ctx.parse(), filterData);
-
-      await session.factory(this.schema, ctx.parameters.id).set(entry).save();
+      await session.factory(this.schema, entry.id).set(entry).save();
 
       return this.hideFields(entry);
     });
@@ -140,15 +115,48 @@ class NormBundle extends Bundle {
 
   del (ctx) {
     return this.runSession(ctx, async session => {
-      let entry = await this.read(ctx, session);
+      const entry = await this.read(ctx, session);
       if (!entry) {
         ctx.throw(404);
       }
 
-      await session.factory(this.schema, ctx.parameters.id).delete();
+      await session.factory(this.schema, entry.id).delete();
 
       return this.hideFields(entry);
     });
+  }
+
+  _buildSingleCriteria (ctx) {
+    return {
+      [this.selector]: ctx.parameters.__selector,
+      ...this._buildFilterCriteria(ctx),
+    };
+  }
+
+  _buildAllCriteria (ctx) {
+    const criteria = {};
+    for (const key in ctx.query) {
+      if (key[0] === '!') {
+        continue;
+      }
+      criteria[key] = ctx.query[key];
+    }
+
+    return {
+      ...criteria,
+      ...this._buildFilterCriteria(ctx),
+    };
+  }
+
+  _buildFilterCriteria (ctx) {
+    if (!this.filterBy) {
+      return;
+    }
+
+    return Object.keys(this.filterBy).reduce((criteria, filterKey) => {
+      criteria[this.filterBy[filterKey]] = ctx.parameters[filterKey];
+      return criteria;
+    }, {});
   }
 }
 

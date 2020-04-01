@@ -1,5 +1,2 @@
-const normMiddleware = require('./middleware');
-
-normMiddleware.Bundle = require('./bundle');
-
-module.exports = normMiddleware;
+module.exports = require('./middleware');
+module.exports.Bundle = require('./bundle');

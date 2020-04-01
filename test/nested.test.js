@@ -1,4 +1,4 @@
-const test = require('supertest');
+const tester = require('supertest');
 const Bundle = require('bono');
 const { Manager } = require('node-norm');
 const NormBundle = require('../bundle');
@@ -6,7 +6,7 @@ const assert = require('assert');
 
 describe('nested bundle', () => {
   it('show filtered', async () => {
-    let data = {
+    const data = {
       foo: [
         { id: '1', name: 'foo1' },
       ],
@@ -17,15 +17,15 @@ describe('nested bundle', () => {
       ],
     };
 
-    let app = createApp(data);
+    const app = createApp(data);
 
-    let fooBundle = new NormBundle({ schema: 'foo' });
+    const fooBundle = new NormBundle({ schema: 'foo' });
     app.bundle('/foo', fooBundle);
 
-    let barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
+    const barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
     fooBundle.bundle('/{fooId}/bar', barBundle);
 
-    let { body } = await test(app.callback())
+    const { body } = await tester(app.callback())
       .get('/foo/1/bar')
       .expect(200);
 
@@ -33,18 +33,18 @@ describe('nested bundle', () => {
   });
 
   it('insert with predefined filter', async () => {
-    let data = {
+    const data = {
     };
 
-    let app = createApp(data);
+    const app = createApp(data);
 
-    let fooBundle = new NormBundle({ schema: 'foo' });
+    const fooBundle = new NormBundle({ schema: 'foo' });
     app.bundle('/foo', fooBundle);
 
-    let barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
+    const barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
     fooBundle.bundle('/{fooId}/bar', barBundle);
 
-    let { body } = await test(app.callback())
+    const { body } = await tester(app.callback())
       .post('/foo/1/bar')
       .send({ name: 'something' })
       .expect(201);
@@ -53,56 +53,56 @@ describe('nested bundle', () => {
   });
 
   it('update with predefined filter', async () => {
-    let data = {
+    const data = {
       bar: [
         { id: '1', foo_id: '1', name: 'foo1bar1' },
       ],
     };
 
-    let app = createApp(data);
+    const app = createApp(data);
 
-    let fooBundle = new NormBundle({ schema: 'foo' });
+    const fooBundle = new NormBundle({ schema: 'foo' });
     app.bundle('/foo', fooBundle);
 
-    let barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
+    const barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
     fooBundle.bundle('/{fooId}/bar', barBundle);
 
-    let { body } = await test(app.callback())
+    const { body } = await tester(app.callback())
       .put('/foo/1/bar/1')
       .send({ name: 'something' })
       .expect(200);
 
     assert.strictEqual(body.foo_id, '1');
 
-    await test(app.callback())
+    await tester(app.callback())
       .put('/foo/2/bar/1')
       .send({ name: 'something' })
       .expect(404);
   });
 
   it('read with predefined filter', async () => {
-    let data = {
+    const data = {
       bar: [
         { id: '1', foo_id: '1', name: 'foo1bar1' },
       ],
     };
 
-    let app = createApp(data);
+    const app = createApp(data);
 
-    let fooBundle = new NormBundle({ schema: 'foo' });
+    const fooBundle = new NormBundle({ schema: 'foo' });
     app.bundle('/foo', fooBundle);
 
-    let barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
+    const barBundle = new NormBundle({ schema: 'bar', filterBy: { fooId: 'foo_id' } });
     fooBundle.bundle('/{fooId}/bar', barBundle);
 
-    await test(app.callback())
+    await tester(app.callback())
       .get('/foo/2/bar/1')
       .expect(404);
   });
 });
 
 function createApp (data = {}) {
-  let config = {
+  const config = {
     connections: [
       {
         adapter: require('node-norm/adapters/memory'),
@@ -111,8 +111,8 @@ function createApp (data = {}) {
     ],
   };
 
-  let manager = new Manager(config);
-  let app = new Bundle();
+  const manager = new Manager(config);
+  const app = new Bundle();
 
   app.use(require('../middleware')({ manager }));
   app.use(require('bono/middlewares/json')());

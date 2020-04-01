@@ -8,7 +8,7 @@ npm i bono-norm
 
 ## Usage
 
-```javascript
+```js
 // ...
 
 const Bundle = require('bono');
@@ -38,3 +38,28 @@ app.bundle('/user', new NormBundle({ schema: 'user' }));
 
 // ...
 ```
+
+### Hide fields
+
+```js
+// ...
+
+app.bundle('/user', new NormBundle({ schema: 'user', hiddenFields: ['password'] }));
+
+// ...
+```
+
+### Nested bundles
+
+```js
+// ...
+
+const userBundle = new NormBundle({ schema: 'user' };
+userBundle.bundle('/{userId}/task', new NormBundle({ schema: 'task', filterBy: { userId: 'id' } }));
+
+app.bundle('/user', userBundle);
+
+// ...
+```
+
+

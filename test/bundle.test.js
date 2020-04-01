@@ -1,12 +1,13 @@
-const test = require('supertest');
+const tester = require('supertest');
 const Bundle = require('../bundle');
 const NString = require('node-norm/schemas/nstring');
 const Actorable = require('node-norm/observers/actorable');
 const assert = require('assert');
 
+const adapter = require('node-norm/adapters/memory');
+
 describe('(bundle)', () => {
-  let adapter = require('node-norm/adapters/memory');
-  let data = {
+  const data = {
     foo: [
       { id: '3333', foo: 'bar' },
       { id: '9999', foo: 'baz' },
@@ -15,22 +16,22 @@ describe('(bundle)', () => {
   let bundle;
 
   beforeEach(() => {
-    let connection = { data, adapter };
+    const connection = { data, adapter };
     bundle = new Bundle({ schema: 'foo' });
-    bundle.use(require('../middleware')({ connections: [ connection ] }));
+    bundle.use(require('../middleware')({ connections: [connection] }));
     bundle.use(require('bono/middlewares/json')());
   });
 
   it('throw error if not using middleware', async () => {
-    let bundle = new Bundle({ schema: 'foo' });
-    await test(bundle.callback())
+    const bundle = new Bundle({ schema: 'foo' });
+    await tester(bundle.callback())
       .get('/')
       .expect(500);
   });
 
   describe('GET /', () => {
     it('return all rows', async () => {
-      let { body } = await test(bundle.callback())
+      const { body } = await tester(bundle.callback())
         .get('/?!limit=1')
         .expect(200);
 
@@ -40,14 +41,14 @@ describe('(bundle)', () => {
     });
 
     it('return all rows with sort', async () => {
-      let { body } = await test(bundle.callback())
+      const { body } = await tester(bundle.callback())
         .get('/?!sort[id]=1')
         .expect(200);
 
       assert.strictEqual(body.entries[0].id, '3333');
 
       {
-        let { body } = await test(bundle.callback())
+        const { body } = await tester(bundle.callback())
           .get('/?!sort[id]=-1')
           .expect(200);
 
@@ -58,7 +59,7 @@ describe('(bundle)', () => {
 
   describe('GET /{id}', () => {
     it('return row', async () => {
-      let { body } = await test(bundle.callback())
+      const { body } = await tester(bundle.callback())
         .get('/3333')
         .expect(200);
 
@@ -68,7 +69,7 @@ describe('(bundle)', () => {
 
   describe('POST /', () => {
     it('add new row', async () => {
-      let connection = {
+      const connection = {
         data,
         adapter,
         schemas: [
@@ -84,7 +85,7 @@ describe('(bundle)', () => {
         ],
       };
       bundle = new Bundle({ schema: 'foo' });
-      bundle.use(require('../middleware')({ connections: [ connection ] }));
+      bundle.use(require('../middleware')({ connections: [connection] }));
       bundle.use(require('bono/middlewares/json')());
       bundle.use((ctx, next) => {
         ctx.state.user = {
@@ -94,7 +95,7 @@ describe('(bundle)', () => {
         return next();
       });
 
-      let { body } = await test(bundle.callback())
+      const { body } = await tester(bundle.callback())
         .post('/')
         .send({ foo: 'zzz' })
         .expect(201);

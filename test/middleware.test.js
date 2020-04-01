@@ -1,17 +1,18 @@
 const assert = require('assert');
+const Constants = require('../constants');
 
 describe('(middleware)', () => {
   it('add norm to ctx', async () => {
-    let middleware = require('../middleware')();
+    const middleware = require('../middleware')();
 
-    let ctx = {};
+    const ctx = {};
     let nextCalled = false;
     function next () {
       nextCalled = true;
     }
     await middleware(ctx, next);
 
-    assert(ctx.norm);
+    assert(ctx[Constants.MANAGER_KEY]);
     assert(nextCalled);
   });
 });
