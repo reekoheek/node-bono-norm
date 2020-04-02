@@ -18,7 +18,12 @@ class NormBundle extends Bundle {
     this.delete('/{__selector}', this.del.bind(this));
   }
 
-  runSession (ctx, fn) {
+  runSession (fn, ctx) {
+    if (typeof fn === 'object') {
+      console.error('Deprecated signature, please call #runSession(fn, ctx)');
+      [ctx, fn] = [fn, ctx];
+    }
+
     if (Constants.MANAGER_KEY in ctx === false) {
       throw new Error('Uninitialized manager! Please use bono-norm middleware');
     }
@@ -28,7 +33,7 @@ class NormBundle extends Bundle {
   }
 
   index (ctx) {
-    return this.runSession(ctx, async session => {
+    return this.runSession(async session => {
       const criteria = this._buildAllCriteria(ctx);
 
       let query = session.factory(this.schema, criteria);
@@ -48,7 +53,7 @@ class NormBundle extends Bundle {
       const entries = (await query.all()).map(entry => this.hideFields(entry));
       const count = await session.factory(this.schema, criteria).count();
       return { entries, count };
-    });
+    }, ctx);
   }
 
   hideFields (entry) {
@@ -62,7 +67,7 @@ class NormBundle extends Bundle {
   }
 
   create (ctx) {
-    return this.runSession(ctx, async session => {
+    return this.runSession(async session => {
       const entry = {
         ...await ctx.parse(),
         ...this._buildFilterCriteria(ctx),
@@ -74,7 +79,7 @@ class NormBundle extends Bundle {
       ctx.response.set('Location', `${ctx.originalUrl}/${resultEntry.id}`);
 
       return this.hideFields(resultEntry);
-    });
+    }, ctx);
   }
 
   read (ctx, session) {
@@ -89,14 +94,14 @@ class NormBundle extends Bundle {
     };
 
     if (!session) {
-      return this.runSession(ctx, doRead);
+      return this.runSession(doRead, ctx);
     }
 
     return doRead(session);
   }
 
   update (ctx) {
-    return this.runSession(ctx, async session => {
+    return this.runSession(async session => {
       let entry = await this.read(ctx, session);
       if (!entry) {
         ctx.throw(404);
@@ -110,11 +115,11 @@ class NormBundle extends Bundle {
       await session.factory(this.schema, entry.id).set(entry).save();
 
       return this.hideFields(entry);
-    });
+    }, ctx);
   }
 
   del (ctx) {
-    return this.runSession(ctx, async session => {
+    return this.runSession(async session => {
       const entry = await this.read(ctx, session);
       if (!entry) {
         ctx.throw(404);
@@ -123,7 +128,7 @@ class NormBundle extends Bundle {
       await session.factory(this.schema, entry.id).delete();
 
       return this.hideFields(entry);
-    });
+    }, ctx);
   }
 
   _buildSingleCriteria (ctx) {
